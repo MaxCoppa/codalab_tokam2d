@@ -1,17 +1,15 @@
 # Tokam2D - Structure detection in fusion plasma simulations in codabench
 
----
 ## Context
 
 The objective of magnetic confinement fusion is to build a nuclear fusion energy reactor. To achieve this, fusion scientists confine a plasma (a gas of charged particles) using a strong magnetic field and heat it to temperatures at which nuclear fusion reactions can occur.
 
-One of the main obstacles to this goal is turbulent transport. Turbulence in the plasma gives rise to intermittent flows that carry heat and particles away from the hot plasma core toward the vessel walls, thereby preventing the plasma from reaching and sustaining fusion-relevant conditions.
+One of the main obstacles to this goal is **turbulent transport**. Turbulence in the plasma gives rise to intermittent flows that carry heat and particles away from the hot plasma core toward the vessel walls, thereby preventing the plasma from reaching and sustaining fusion-relevant conditions.
 
 A key feature of turbulent transport is the formation of coherent, localized structures known as blobs. These structures are regions of enhanced plasma density that detach from the core and propagate outward. Blobs are believed to be responsible for a significant fraction of cross-field transport in magnetically confined plasmas.
 
-The goal of this challenge is to explore how such turbulent structures can be automatically detected (and possibly tracked) in plasma simulation data.
+The goal of this challenge is to explore how such turbulent structures can be **automatically detected (and possibly tracked)** in plasma simulation data.
 
----
 ## Data description
 
 The data consist of image frames extracted from simulation movies showing the plasma density field. In these images, blobs appear as overdense, mushroom-like structures moving through the plasma toward the wall.
@@ -32,12 +30,10 @@ Important:
 Only blob_i, blob_dwi, and turb_i may be used for training and validation.
 Frames from turb_dwi must not be used during training. Submissions that incorporate turb_dwi data into the training loop will be penalized.
 
----
 ## Task
 
 The task is to detect blobs in each frame by predicting bounding boxes around the blob front (single class: blob_front). You may use spatial information only, temporal information, or a combination of both.
 
----
 ## Metric
 
 Performance is evaluated using AP50 based on Intersection-over-Mean (IoMean), a metric inspired by the COCO mean Average Precision.
@@ -52,6 +48,7 @@ There is only one object class (blob_front).
 
 This metric is designed to better reflect the physical ambiguity of blob boundaries in turbulent plasma simulations.
 
+## Getting started
 
 To test the ingestion program, run:
 
