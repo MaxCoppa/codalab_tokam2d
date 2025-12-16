@@ -6,12 +6,12 @@ registration_auto_approve: False  # if True, do not require approval from admin 
 
 terms: pages/terms.md
 pages:
+  - title: Description
+    file: pages/description.md
   - title: Participation
     file: pages/participate.md
   - title: Seed
     file: pages/seed.md
-  - title: Timeline
-    file: pages/timeline.md
 
 tasks:
   - index: 0
@@ -30,10 +30,10 @@ solutions:
 
 
 phases:
-  - name: Development Phase
-    description: 'Development phase: tune your models.'
+  - name: Competition
+    description: 'Competition: tune your models.'
     start: 10-07-2025
-    end: 11-15-2025
+    end: 03-09-2025
     tasks:
       - 0
 
