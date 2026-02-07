@@ -31,8 +31,11 @@ def train_model(training_dir):
         for images, targets in train_dataloader:
             images = [im.to(device) for im in images]
             targets = [
-                {k: v.to(device) if isinstance(v, torch.Tensor) else v
-                 for k, v in t.items()} for t in targets
+                {
+                    k: v.to(device) if isinstance(v, torch.Tensor) else v
+                    for k, v in t.items()
+                }
+                for t in targets
             ]
             optimizer.zero_grad()
             loss_dict = model(images, targets)

@@ -17,10 +17,7 @@ class TokamDataset(VisionDataset):
         transforms: Optional[Callable] = None,
         include_unlabeled: bool = False,  # TODO: implement this
     ) -> None:
-        super().__init__(
-            root=root,
-            transforms=transforms
-        )
+        super().__init__(root=root, transforms=transforms)
         self.include_unlabeled = include_unlabeled
 
         self.extract_annotations()
@@ -32,30 +29,33 @@ class TokamDataset(VisionDataset):
         for file_path in data_files:
             with h5py.File(file_path) as f:
                 data = f["density"]
-                frame_indices = [
-                    f'{file_path.stem}-{idx}' for idx in f["indices"]
-                ]
-                self.images.append(torch.tensor(
-                    np.array(
-                        [
-                            np.expand_dims(image, axis=0)
-                            for idx, image in zip(frame_indices, data)
-                            if (
-                                self.annotations is None
-                                or self.include_unlabeled
-                                or idx in self.annotations
-                            )
-                        ]
+                frame_indices = [f"{file_path.stem}-{idx}" for idx in f["indices"]]
+                self.images.append(
+                    torch.tensor(
+                        np.array(
+                            [
+                                np.expand_dims(image, axis=0)
+                                for idx, image in zip(frame_indices, data)
+                                if (
+                                    self.annotations is None
+                                    or self.include_unlabeled
+                                    or idx in self.annotations
+                                )
+                            ]
+                        )
                     )
-                ))
-                self.idx_to_frame.extend([
-                    idx for idx in frame_indices
-                    if (
-                        self.annotations is None
-                        or self.include_unlabeled
-                        or idx in self.annotations
-                    )
-                ])
+                )
+                self.idx_to_frame.extend(
+                    [
+                        idx
+                        for idx in frame_indices
+                        if (
+                            self.annotations is None
+                            or self.include_unlabeled
+                            or idx in self.annotations
+                        )
+                    ]
+                )
         self.images = torch.cat(self.images, dim=0)
         self.num_frames = self.images.shape[0]
         assert self.num_frames == len(self.idx_to_frame), (

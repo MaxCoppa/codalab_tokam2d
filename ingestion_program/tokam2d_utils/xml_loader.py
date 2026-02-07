@@ -10,11 +10,14 @@ def dump_to_xml(y_pred, filepath):
     for y_p in y_pred:
         frame_idx = y_p["frame_index"]
         frame_elem = Element("image", index=str(frame_idx))
-        for box, score in zip(y_p['boxes'], y_p['scores']):
+        for box, score in zip(y_p["boxes"], y_p["scores"]):
             box_elem = Element(
-                "box", score=str(score.item()),
-                xtl=str(box[0].item()), ytl=str(box[1].item()),
-                xbr=str(box[2].item()), ybr=str(box[3].item()),
+                "box",
+                score=str(score.item()),
+                xtl=str(box[0].item()),
+                ytl=str(box[1].item()),
+                xbr=str(box[2].item()),
+                ybr=str(box[3].item()),
             )
             frame_elem.append(box_elem)
         root.append(frame_elem)
@@ -29,9 +32,7 @@ class XMLLoader:
     def __call__(self):
         tree = parse(self.path)
         root = tree.getroot()
-        return dict(
-            self.xml_to_tv_tensor(element) for element in root.findall("image")
-        )
+        return dict(self.xml_to_tv_tensor(element) for element in root.findall("image"))
 
     def xml_to_tv_tensor(self, element: Element) -> tuple[int, BoundingBoxes]:
         width = int(element.attrib["width"])

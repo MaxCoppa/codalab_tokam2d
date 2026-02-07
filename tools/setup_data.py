@@ -4,6 +4,7 @@ To adapt it for another challenge, change the CHALLENGE_NAME and upload
 public/private data as `tar.gz` archives in dedicated OSF folders named after
 the challenge.
 """
+
 import sys
 import h5py
 import shutil
@@ -15,7 +16,7 @@ from pathlib import Path
 from osfclient.api import OSF
 from osfclient.exceptions import UnauthorizedException
 
-CHALLENGE_NAME = 'tokam2d'
+CHALLENGE_NAME = "tokam2d"
 PUBLIC_PROJECT = "cmbs5"
 PRIVATE_PROJECT = "8u6bd"
 PRIVATE_CKSUM = 2762212072
@@ -29,7 +30,7 @@ def get_folder(code, token=None):
 
     try:
         project = osf.project(code)
-        store = project.storage('osfstorage')
+        store = project.storage("osfstorage")
     except UnauthorizedException:
         raise ValueError("Invalid credentials for RAMP private storage.")
     return get_one_element(store.folders, CHALLENGE_NAME)
@@ -38,12 +39,10 @@ def get_folder(code, token=None):
 def get_one_element(container, name):
     "Get one element from OSF container with a comprehensible failure error."
     elements = [f for f in container if f.name == name]
-    container_name = (
-        container.name if hasattr(container, 'name') else CHALLENGE_NAME
-    )
+    container_name = container.name if hasattr(container, "name") else CHALLENGE_NAME
     assert len(elements) == 1, (
-        f'There is no element named {name} in {container_name} from the RAMP '
-        'OSF account.'
+        f"There is no element named {name} in {container_name} from the RAMP "
+        "OSF account."
     )
     return elements[0]
 
@@ -54,7 +53,7 @@ def hash_folder(folder_path):
 
     # Recursively scan the folder and compute a checksum
     checksum = 1
-    for f in sorted(folder.rglob('*')):
+    for f in sorted(folder.rglob("*")):
         if f.is_dir():
             continue
         checksum = adler32(f.read_bytes(), checksum)
@@ -63,7 +62,7 @@ def hash_folder(folder_path):
 
 
 def checksum_data(data_dir, cksum, raise_error=False):
-    print("Checking the data...", end='', flush=True)
+    print("Checking the data...", end="", flush=True)
     local_checksum = hash_folder(data_dir)
     if raise_error and cksum != local_checksum:
         raise ValueError(
@@ -85,8 +84,8 @@ def download_from_osf(folder, filename, data_dir=None):
         data_dir = Path.cwd()
     target_path = data_dir / filename
     osf_file = get_one_element(folder.files, filename)
-    print(f"Downloading {filename}...\r", end='', flush=True)
-    with open(target_path, 'wb') as f:
+    print(f"Downloading {filename}...\r", end="", flush=True)
+    with open(target_path, "wb") as f:
         osf_file.write_to(f)
     print("Downloading done.".ljust(40))
     return target_path
@@ -109,9 +108,9 @@ def setup_data(data_path, private=False, token=None):
         if not archive.exists():
             public_folder = get_folder(PUBLIC_PROJECT)
             archive = download_from_osf(public_folder, "public_dev_data.tar.gz")
-        print("Extracting the data...", end='', flush=True)
+        print("Extracting the data...", end="", flush=True)
         with tarfile.open(archive) as tar:
-            tar.extractall(data_path.parent, filter='data')
+            tar.extractall(data_path.parent, filter="data")
         # archive.unlink()
         print(" done.")
 
@@ -120,15 +119,15 @@ def setup_data(data_path, private=False, token=None):
         if not raw_data.exists():
             private_folder = get_folder(PRIVATE_PROJECT, token=token)
             raw_data = download_from_osf(private_folder, "raw_data.tar.gz")
-        print("Extracting the data...", end='', flush=True)
+        print("Extracting the data...", end="", flush=True)
         with tarfile.open(raw_data) as tar:
-            tar.extractall(filter='data')
+            tar.extractall(filter="data")
         # raw_data.unlink()
         print(" done.")
         raw_path = Path() / "raw_data"
 
         # Setup data structure
-        print("Setting up the data...", end='', flush=True)
+        print("Setting up the data...", end="", flush=True)
         data_path.mkdir(exist_ok=True)
         input_data = data_path / "input_data"
         for sub_folder in ["train", "test", "private_test"]:
@@ -140,47 +139,52 @@ def setup_data(data_path, private=False, token=None):
         for f in ["blob_i", "blob_dwi"]:
             for ext in [".xml", ".h5"]:
                 fname = f"{f}{ext}"
-                shutil.move(
-                    str(raw_path / fname), str(input_data / "train" / fname)
-                )
+                shutil.move(str(raw_path / fname), str(input_data / "train" / fname))
         fname = "turb_i.h5"
-        shutil.move(
-            str(raw_path / fname), str(input_data / "train" / fname)
-        )
+        shutil.move(str(raw_path / fname), str(input_data / "train" / fname))
 
         # Setup test data
         fname = raw_path / "turb_dwi.h5"
         from ingestion_program.tokam2d_utils.xml_loader import XMLLoader
         from ingestion_program.tokam2d_utils.xml_loader import dump_to_xml
-        annotations = XMLLoader(fname.with_suffix('.xml'))()
-        annotations = {int(k.split('-')[1]): v for k, v in annotations.items()}
-        with h5py.File(fname, 'r') as f:
-            indices = f['indices']
+
+        annotations = XMLLoader(fname.with_suffix(".xml"))()
+        annotations = {int(k.split("-")[1]): v for k, v in annotations.items()}
+        with h5py.File(fname, "r") as f:
+            indices = f["indices"]
             n_test = len(annotations) // 2
             test_idx, private_idx = indices[:n_test], indices[n_test:]
-            dump_to_xml([
-                {
-                    "frame_index": f"test-{idx}",
-                    "boxes": box,
-                    "scores": np.array([1.0] * len(box))
-                }
-                for idx, box in annotations.items() if idx in test_idx
-            ], ref_data / "test_labels.xml")
+            dump_to_xml(
+                [
+                    {
+                        "frame_index": f"test-{idx}",
+                        "boxes": box,
+                        "scores": np.array([1.0] * len(box)),
+                    }
+                    for idx, box in annotations.items()
+                    if idx in test_idx
+                ],
+                ref_data / "test_labels.xml",
+            )
             with h5py.File(input_data / "test" / "test.h5", "w") as g:
-                g['density'] = f['density'][:n_test]
-                g['indices'] = test_idx
+                g["density"] = f["density"][:n_test]
+                g["indices"] = test_idx
 
-            dump_to_xml([
-                {
-                    "frame_index": f"private_test-{idx}",
-                    "boxes": box,
-                    "scores": np.array([1.0] * len(box))
-                }
-                for idx, box in annotations.items() if idx in private_idx
-            ], ref_data / "private_test_labels.xml")
+            dump_to_xml(
+                [
+                    {
+                        "frame_index": f"private_test-{idx}",
+                        "boxes": box,
+                        "scores": np.array([1.0] * len(box)),
+                    }
+                    for idx, box in annotations.items()
+                    if idx in private_idx
+                ],
+                ref_data / "private_test_labels.xml",
+            )
             with h5py.File(input_data / "private_test" / "private_test.h5", "w") as g:
-                g['density'] = f['density'][n_test:]
-                g['indices'] = private_idx
+                g["density"] = f["density"][n_test:]
+                g["indices"] = private_idx
 
         (raw_path / "turb_dwi.h5").unlink()
         (raw_path / "turb_dwi.xml").unlink()
@@ -192,20 +196,29 @@ def setup_data(data_path, private=False, token=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description=f'Data loader for the {CHALLENGE_NAME} challenge on RAMP.'
+        description=f"Data loader for the {CHALLENGE_NAME} challenge on RAMP."
     )
-    parser.add_argument('--data-path', type=Path, default=Path("dev_phase"),
-                        help='If this flag is used, download the private data '
-                        'from OSF. This requires the username and password '
-                        'options to be provided.')
-    parser.add_argument('--private', action="store_true",
-                        help='If this flag is used, download the private data '
-                        'from OSF. This requires the username and password '
-                        'options to be provided.')
     parser.add_argument(
-        '--token', type=str, default=None,
+        "--data-path",
+        type=Path,
+        default=Path("dev_phase"),
+        help="If this flag is used, download the private data "
+        "from OSF. This requires the username and password "
+        "options to be provided.",
+    )
+    parser.add_argument(
+        "--private",
+        action="store_true",
+        help="If this flag is used, download the private data "
+        "from OSF. This requires the username and password "
+        "options to be provided.",
+    )
+    parser.add_argument(
+        "--token",
+        type=str,
+        default=None,
         help="Token to access OSF private repo. Can be generated from "
-        "https://osf.io/settings/tokens"
+        "https://osf.io/settings/tokens",
     )
     args = parser.parse_args()
 

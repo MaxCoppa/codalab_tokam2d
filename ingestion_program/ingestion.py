@@ -28,8 +28,7 @@ def evaluate_model(model, data_dir):
 
         # Add back frame index
         y_pred = [
-            {**y_p, "frame_index": y_t["frame_index"]}
-            for y_p, y_t in zip(y_pred, y)
+            {**y_p, "frame_index": y_t["frame_index"]} for y_p, y_t in zip(y_pred, y)
         ]
         # Check how to make this work
         res.extend(y_pred)
@@ -72,9 +71,7 @@ def main(data_dir, output_dir):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Ingestion program for codabench"
-    )
+    parser = argparse.ArgumentParser(description="Ingestion program for codabench")
     parser.add_argument(
         "--data-dir",
         type=str,

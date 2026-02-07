@@ -8,10 +8,7 @@ EVAL_SETS = ["test", "private_test"]
 
 
 def match_gts_and_preds(
-    groundtruths: list,
-    predictions: list,
-    scores: list,
-    threshold: float
+    groundtruths: list, predictions: list, scores: list, threshold: float
 ) -> tuple[int, list[tuple[float, float]]]:
     """Match GTs and preds on an image in the dataset.
 
@@ -52,11 +49,7 @@ def match_gts_and_preds(
     return len(groundtruths), np.array(list(zip(scores, tps))).reshape(-1, 2)
 
 
-def compute_ap(
-    predictions,
-    targets,
-    threshold: float
-) -> float:
+def compute_ap(predictions, targets, threshold: float) -> float:
     """Compute the Average Precision (AP) for a given localization threshold.
 
     Args:
@@ -81,7 +74,7 @@ def compute_ap(
             groundtruths=target["boxes"],
             predictions=output["boxes"],
             scores=output["scores"],
-            threshold=threshold
+            threshold=threshold,
         )
         num_groundtruths += num_gts
         big_tp_vector = np.concat((big_tp_vector, tp_vector))
@@ -128,12 +121,12 @@ def read_xml(path):
                     float(bbox.attrib["ytl"]),
                     float(bbox.attrib["xbr"]),
                     float(bbox.attrib["ybr"]),
-                ) for bbox in element.findall("box")
+                )
+                for bbox in element.findall("box")
             ],
             "scores": [
-                float(bbox.attrib.get("score", 1.0))
-                for bbox in element.findall("box")
-            ]
+                float(bbox.attrib.get("score", 1.0)) for bbox in element.findall("box")
+            ],
         }
     return annotations
 
@@ -141,33 +134,28 @@ def read_xml(path):
 def main(reference_dir, prediction_dir, output_dir):
     scores = {}
     for eval_set in EVAL_SETS:
-        print(f'Scoring {eval_set}')
+        print(f"Scoring {eval_set}")
 
-        predictions = read_xml(prediction_dir / f'{eval_set}_predictions.xml')
-        targets = read_xml(reference_dir / f'{eval_set}_labels.xml')
+        predictions = read_xml(prediction_dir / f"{eval_set}_predictions.xml")
+        targets = read_xml(reference_dir / f"{eval_set}_labels.xml")
 
-        scores[eval_set] = float(compute_ap(
-            predictions, targets,
-            threshold=0.5
-        ))
+        scores[eval_set] = float(compute_ap(predictions, targets, threshold=0.5))
 
     # Add train and test times in the score
-    json_durations = (prediction_dir / 'metadata.json').read_text()
+    json_durations = (prediction_dir / "metadata.json").read_text()
     durations = json.loads(json_durations)
     scores.update(**durations)
     print(scores)
 
     # Write output scores
     output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / 'scores.json').write_text(json.dumps(scores))
+    (output_dir / "scores.json").write_text(json.dumps(scores))
 
 
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Scoring program for codabench"
-    )
+    parser = argparse.ArgumentParser(description="Scoring program for codabench")
     parser.add_argument(
         "--reference-dir",
         type=str,
@@ -189,8 +177,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(
-        Path(args.reference_dir),
-        Path(args.prediction_dir),
-        Path(args.output_dir)
-    )
+    main(Path(args.reference_dir), Path(args.prediction_dir), Path(args.output_dir))
