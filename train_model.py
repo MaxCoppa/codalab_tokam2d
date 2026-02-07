@@ -11,7 +11,7 @@ from tokam2d.metrics import compute_ap
 from tokam2d.model import train_model
 from tokam2d.tokam2d_utils import TokamDataset, vizualise_annotation
 
-EVAL_SETS = ["train"]
+EVAL_SETS = ["private_test", "train"]
 
 
 def collate_fn(batch: torch.Tensor) -> torch.Tensor:
@@ -36,32 +36,32 @@ def evaluate_model(model, data_dir):
         img = X[0][0].numpy()
         vizualise_annotation(img, y[0]["boxes"], y_pred[0]["boxes"])
 
-        print(float(compute_ap(y_pred, y, threshold=0.5)))
+        if y[0]["boxes"] is not None:
+            print(float(compute_ap(y_pred, y, threshold=0.5)))
 
     return res
 
 
-def eval_model(data_dir):
+def train_eval_model(data_dir):
 
     training_dir = data_dir / "train"
-    print(training_dir)
     print("Training the model")
     start = time.time()
     model = train_model(training_dir)
     train_time = time.time() - start
-    print(train_time)
+    print(f"Train time : {train_time}")
     print("-" * 10)
     print("Evaluate the model")
     start = time.time()
     for eval_set in EVAL_SETS:
         _ = evaluate_model(model, data_dir / eval_set)
     test_time = time.time() - start
-    print(test_time)
+    print(f"Test time : {test_time}")
 
 
 # %%
 
 data_dir = "dev_phase/input_data"
-eval_model(Path(data_dir))
+train_eval_model(Path(data_dir))
 
 # %%

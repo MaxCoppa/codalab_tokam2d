@@ -1,7 +1,11 @@
 import torch
-from torchvision.models.detection import fasterrcnn_resnet50_fpn
+from torchvision.models.detection import (
+    fasterrcnn_resnet50_fpn,
+    fasterrcnn_mobilenet_v3_large_fpn,
+)
 
-from tokam2d.tokam2d_utils import TokamDataset
+# from tokam2d.tokam2d_utils import TokamDataset
+from tokam2d_utils import TokamDataset
 
 
 def collate_fn(batch: torch.Tensor) -> torch.Tensor:
@@ -19,12 +23,13 @@ def train_model(training_dir):
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     model = fasterrcnn_resnet50_fpn()
+    model = fasterrcnn_mobilenet_v3_large_fpn()
     model.to(device)
     model.train()
 
     optimizer = torch.optim.AdamW(model.parameters())
 
-    max_epochs = 10
+    max_epochs = 100
 
     for i in range(max_epochs):
         print(f"Epoch {i+1}/{max_epochs}")

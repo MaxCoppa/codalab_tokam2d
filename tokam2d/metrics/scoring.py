@@ -37,7 +37,6 @@ def match_gts_and_preds(
         loc_scores = [compute_iomean(pred, gt) for gt in groundtruths]
         best_gt = int(np.argmax(loc_scores))
         best_loc = loc_scores[best_gt]
-        print(best_loc, best_gt)
         if best_loc >= threshold and not gt_matched[best_gt]:
             tps[i] = 1
             gt_matched[best_gt] = True
