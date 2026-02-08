@@ -1,10 +1,13 @@
 import torch
 from torchvision.models.detection import (
+    fasterrcnn_resnet50_fpn_v2,
     fasterrcnn_resnet50_fpn,
     fasterrcnn_mobilenet_v3_large_fpn,
+    FasterRCNN_ResNet50_FPN_Weights,
 )
 
 # from tokam2d.tokam2d_utils import TokamDataset
+
 from tokam2d_utils import TokamDataset
 
 
@@ -12,24 +15,41 @@ def collate_fn(batch: torch.Tensor) -> torch.Tensor:
     return tuple(zip(*batch))
 
 
+class ApplyToImageOnly:
+    def __init__(self, img_tf):
+        self.img_tf = img_tf
+
+    def __call__(self, image, target):
+        image = self.img_tf(image)
+        return image, target
+
+
 def train_model(training_dir):
-    train_dataset = TokamDataset(training_dir, include_unlabeled=False)
+    train_dataset = TokamDataset(
+        training_dir,
+        transforms=ApplyToImageOnly(
+            FasterRCNN_ResNet50_FPN_Weights.COCO_V1.transforms()
+        ),
+        include_unlabeled=False,
+    )
     train_dataloader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=2, collate_fn=collate_fn, shuffle=True
+        train_dataset,
+        batch_size=2,
+        collate_fn=collate_fn,
+        shuffle=True,
     )
 
     if torch.cuda.is_available():
         print("Using GPU")
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = fasterrcnn_resnet50_fpn()
-    model = fasterrcnn_mobilenet_v3_large_fpn()
+    model = fasterrcnn_resnet50_fpn_v2(weights="COCO_V1")
     model.to(device)
     model.train()
 
-    optimizer = torch.optim.AdamW(model.parameters())
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
 
-    max_epochs = 100
+    max_epochs = 10
 
     for i in range(max_epochs):
         print(f"Epoch {i+1}/{max_epochs}")
